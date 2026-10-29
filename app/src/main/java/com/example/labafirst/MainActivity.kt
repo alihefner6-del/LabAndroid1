@@ -5,14 +5,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.labafirst.ui.theme.LabaFirstTheme
 import kotlin.random.Random
 
@@ -23,9 +35,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             LabaFirstTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    SingleHelloWorldLab(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -33,49 +43,60 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(words: List<String> = listOf("JETPACK", "COMPOSE", "ANDROID", "KOTLIN", "STUDENT"), modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+fun SingleHelloWorldLab(modifier: Modifier = Modifier) {
+    val words = listOf("HELLO", "WORLD")
+
+    Row(
+        modifier = modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         words.forEachIndexed { rowIndex, word ->
-            val isEvenRow = (rowIndex + 1) % 2 == 0
+            // Чётное слово (WORLD) будет серым, нечётное (HELLO) — основного цвета
+            val isEven = rowIndex % 2 == 1
+            val baseColor = if (isEven) Color.LightGray else MaterialTheme.colorScheme.primary
 
-            val yellowIndices = remember(word, rowIndex) {
-                if (isEvenRow && word.isNotEmpty()) {
-                    val count = Random.nextInt(1, minOf(3, word.length + 1))
-                    (0 until word.length).shuffled().take(count).toSet()
+            // Случайные подсвеченные буквы только для чётного слова (WORLD)
+            val highlightedIndices = remember(rowIndex) {
+                if (isEven) {
+                    val count = Random.nextInt(1, 3) // 1-2 случайные буквы
+                    List(count) { Random.nextInt(word.length) }.toSet()
                 } else {
                     emptySet()
                 }
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            // Отрисовываем буквы слова
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 word.forEachIndexed { charIndex, char ->
-                    val boxBackgroundColor = when {
-                        !isEvenRow -> MaterialTheme.colorScheme.primary
-                        charIndex in yellowIndices -> Color.Yellow
-                        else -> Color.Gray
+                    val boxColor = if (highlightedIndices.contains(charIndex)) {
+                        Color.Yellow
+                    } else {
+                        baseColor
                     }
 
-                    val textColor = if (boxBackgroundColor == Color.Yellow) Color.Black else MaterialTheme.colorScheme.onPrimary
+                    val textColor = if (boxColor == Color.Yellow || isEven) Color.Black else Color.White
 
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .background(boxBackgroundColor),
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(boxColor),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = char.toString(),
-                            color = if (isEvenRow && boxBackgroundColor != Color.Yellow) Color.White else textColor,
-                            style = MaterialTheme.typography.bodyLarge
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
                         )
                     }
                 }
+            }
+
+            // Небольшой отступ/пробел между HELLO и WORLD
+            if (rowIndex < words.size - 1) {
+                Box(modifier = Modifier.size(12.dp))
             }
         }
     }
@@ -83,8 +104,8 @@ fun Greeting(words: List<String> = listOf("JETPACK", "COMPOSE", "ANDROID", "KOTL
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun SingleHelloWorldLabPreview() {
     LabaFirstTheme {
-        Greeting()
+        SingleHelloWorldLab()
     }
 }
